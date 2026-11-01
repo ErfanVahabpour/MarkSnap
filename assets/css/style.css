@@ -1,0 +1,332 @@
+/* MarkSnap Core Stylesheet */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Vazirmatn:wght@300;400;500;600;700;800;900&family=Sahel:wght@400;700&family=Samim:wght@400;700&display=swap');
+
+/* Base Application Styling */
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Persian / RTL Font Families */
+.font-vazir { font-family: 'Vazirmatn', sans-serif !important; }
+.font-sahel { font-family: 'Sahel', 'Vazirmatn', sans-serif !important; }
+.font-samim { font-family: 'Samim', 'Vazirmatn', sans-serif !important; }
+.font-inter { font-family: 'Inter', sans-serif !important; }
+.font-mono { font-family: 'JetBrains Mono', monospace !important; }
+
+/* The Rendered Canvas Document Container */
+#render-canvas-container {
+  background-color: var(--canvas-bg);
+  transition: background-color 0.25s ease;
+}
+
+#export-card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
+  color: var(--text-main);
+  transition: all 0.25s ease;
+}
+
+/* RTL Specific Overrides */
+[dir="rtl"] #export-card {
+  text-align: right;
+  direction: rtl;
+}
+
+[dir="rtl"] .markdown-content ul,
+[dir="rtl"] .markdown-content ol {
+  padding-right: 28px;
+  padding-left: 0;
+}
+
+[dir="rtl"] .markdown-content blockquote {
+  border-right: 4px solid var(--accent);
+  border-left: none;
+  border-radius: 8px 0 0 8px;
+}
+
+[dir="rtl"] .markdown-content th,
+[dir="rtl"] .markdown-content td {
+  text-align: right;
+}
+
+/* LTR Specific Overrides */
+[dir="ltr"] #export-card {
+  text-align: left;
+  direction: ltr;
+}
+
+[dir="ltr"] .markdown-content ul,
+[dir="ltr"] .markdown-content ol {
+  padding-left: 28px;
+  padding-right: 0;
+}
+
+[dir="ltr"] .markdown-content blockquote {
+  border-left: 4px solid var(--accent);
+  border-right: none;
+  border-radius: 0 8px 8px 0;
+}
+
+/* Markdown Typography & Elements */
+.markdown-content h1 {
+  font-size: 2.25rem;
+  font-weight: 800;
+  line-height: 1.25;
+  color: var(--accent);
+  margin-top: 0.5rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--card-border);
+  letter-spacing: -0.025em;
+}
+
+.markdown-content h2 {
+  font-size: 1.65rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--text-main);
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.markdown-content h3 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--accent);
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.markdown-content h4, .markdown-content h5, .markdown-content h6 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.markdown-content p {
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+  line-height: 1.75;
+}
+
+.markdown-content strong {
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.markdown-content a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.markdown-content hr {
+  height: 1px;
+  border: 0;
+  background-color: var(--hr-color);
+  margin: 2rem 0;
+}
+
+/* Blockquote & Callouts */
+.markdown-content blockquote {
+  margin: 1.25rem 0;
+  padding: 1rem 1.25rem;
+  background: var(--blockquote-bg);
+  color: var(--text-muted);
+}
+
+.markdown-content blockquote p {
+  margin: 0.25rem 0;
+}
+
+/* GitHub Alert Callouts */
+.alert-callout {
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin: 1.25rem 0;
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+.alert-note {
+  background: rgba(88, 166, 255, 0.1);
+  border-left: 4px solid #58a6ff;
+  color: #79c0ff;
+}
+.alert-tip {
+  background: rgba(63, 185, 80, 0.1);
+  border-left: 4px solid #3fb950;
+  color: #56d364;
+}
+.alert-important {
+  background: rgba(163, 113, 247, 0.1);
+  border-left: 4px solid #a371f7;
+  color: #bc8cff;
+}
+.alert-warning {
+  background: rgba(210, 153, 34, 0.1);
+  border-left: 4px solid #d29922;
+  color: #e3b341;
+}
+.alert-caution {
+  background: rgba(248, 81, 73, 0.1);
+  border-left: 4px solid #f85149;
+  color: #ff7b72;
+}
+
+[dir="rtl"] .alert-callout {
+  border-left: none !important;
+  border-right-width: 4px !important;
+  border-right-style: solid !important;
+}
+[dir="rtl"] .alert-note { border-right-color: #58a6ff !important; }
+[dir="rtl"] .alert-tip { border-right-color: #3fb950 !important; }
+[dir="rtl"] .alert-important { border-right-color: #a371f7 !important; }
+[dir="rtl"] .alert-warning { border-right-color: #d29922 !important; }
+[dir="rtl"] .alert-caution { border-right-color: #f85149 !important; }
+
+/* Code Blocks */
+.markdown-content pre {
+  background-color: var(--code-bg) !important;
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  padding: 1.25rem;
+  margin: 1.25rem 0;
+  overflow-x: auto;
+  direction: ltr !important;
+  text-align: left !important;
+}
+
+.markdown-content code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.9em;
+}
+
+.markdown-content p code,
+.markdown-content li code,
+.markdown-content td code {
+  background-color: var(--inline-code-bg);
+  color: var(--inline-code-color);
+  padding: 0.2em 0.4em;
+  border-radius: 6px;
+  direction: ltr;
+  display: inline-block;
+}
+
+/* Tables */
+.markdown-content table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 1.5rem 0;
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.markdown-content th {
+  background-color: var(--table-header-bg);
+  color: var(--text-main);
+  font-weight: 600;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.markdown-content td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--card-border);
+  color: var(--text-muted);
+}
+
+.markdown-content tr:last-child td {
+  border-bottom: none;
+}
+
+.markdown-content tr:nth-child(even) {
+  background-color: var(--table-stripe-bg);
+}
+
+/* Mermaid Diagrams */
+.mermaid-container {
+  display: flex;
+  justify-content: center;
+  background-color: var(--code-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 1.75rem;
+  margin: 1.5rem 0;
+  direction: ltr !important;
+}
+
+.mermaid-container .mermaid {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+/* Checkboxes & Task Lists */
+.markdown-content input[type="checkbox"] {
+  appearance: none;
+  width: 1.1em;
+  height: 1.1em;
+  border: 1.5px solid var(--accent);
+  border-radius: 4px;
+  outline: none;
+  cursor: pointer;
+  vertical-align: middle;
+  position: relative;
+  margin-right: 0.5rem;
+}
+[dir="rtl"] .markdown-content input[type="checkbox"] {
+  margin-right: 0;
+  margin-left: 0.5rem;
+}
+.markdown-content input[type="checkbox"]:checked {
+  background-color: var(--accent);
+}
+.markdown-content input[type="checkbox"]:checked::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--card-bg);
+  font-size: 0.8em;
+  font-weight: bold;
+}
+
+/* Watermark & Branding Badge */
+.marksnap-watermark {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 2.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px dashed var(--card-border);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(120, 120, 120, 0.3);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(120, 120, 120, 0.5);
+}

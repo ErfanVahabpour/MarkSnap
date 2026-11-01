@@ -1,0 +1,152 @@
+/* MarkSnap Theme System */
+
+:root {
+  --canvas-bg: #0d1117;
+  --card-bg: #161b22;
+  --card-border: #30363d;
+  --card-shadow: 0 20px 40px rgba(0, 0, 0, 0.45);
+  --text-main: #e6edf3;
+  --text-muted: #8b949e;
+  --accent: #58a6ff;
+  --accent-rgb: 88, 166, 255;
+  --code-bg: #0d1117;
+  --inline-code-bg: rgba(110, 118, 129, 0.2);
+  --inline-code-color: #ff7b72;
+  --table-header-bg: #21262d;
+  --table-stripe-bg: rgba(22, 27, 34, 0.6);
+  --hr-color: #30363d;
+  --blockquote-bg: rgba(88, 166, 255, 0.08);
+}
+
+/* 1. GitHub Dark (Default) */
+.theme-github-dark {
+  --canvas-bg: #0d1117;
+  --card-bg: #161b22;
+  --card-border: #30363d;
+  --card-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  --text-main: #e6edf3;
+  --text-muted: #8b949e;
+  --accent: #58a6ff;
+  --accent-rgb: 88, 166, 255;
+  --code-bg: #0d1117;
+  --inline-code-bg: rgba(110, 118, 129, 0.25);
+  --inline-code-color: #ff7b72;
+  --table-header-bg: #21262d;
+  --table-stripe-bg: rgba(22, 27, 34, 0.7);
+  --hr-color: #30363d;
+  --blockquote-bg: rgba(88, 166, 255, 0.08);
+}
+
+/* 2. GitHub Light */
+.theme-github-light {
+  --canvas-bg: #f6f8fa;
+  --card-bg: #ffffff;
+  --card-border: #d0d7de;
+  --card-shadow: 0 20px 40px rgba(140, 149, 159, 0.2);
+  --text-main: #1f2328;
+  --text-muted: #656d76;
+  --accent: #0969da;
+  --accent-rgb: 9, 105, 218;
+  --code-bg: #f6f8fa;
+  --inline-code-bg: rgba(175, 184, 193, 0.2);
+  --inline-code-color: #cf222e;
+  --table-header-bg: #f6f8fa;
+  --table-stripe-bg: rgba(246, 248, 250, 0.7);
+  --hr-color: #d0d7de;
+  --blockquote-bg: rgba(9, 105, 218, 0.06);
+}
+
+/* 3. Notion Clean (Warm Minimalist) */
+.theme-notion {
+  --canvas-bg: #f7f6f3;
+  --card-bg: #ffffff;
+  --card-border: #e9e9e7;
+  --card-shadow: 0 10px 30px rgba(55, 53, 47, 0.08);
+  --text-main: #37352f;
+  --text-muted: #787774;
+  --accent: #d9730d;
+  --accent-rgb: 217, 115, 13;
+  --code-bg: #f1f1ef;
+  --inline-code-bg: rgba(135, 131, 120, 0.15);
+  --inline-code-color: #eb5757;
+  --table-header-bg: #f7f6f3;
+  --table-stripe-bg: rgba(247, 246, 243, 0.6);
+  --hr-color: #e9e9e7;
+  --blockquote-bg: rgba(217, 115, 13, 0.08);
+}
+
+/* 4. Dracula (Vibrant Dark) */
+.theme-dracula {
+  --canvas-bg: #1e1f29;
+  --card-bg: #282a36;
+  --card-border: #44475a;
+  --card-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
+  --text-main: #f8f8f2;
+  --text-muted: #6272a4;
+  --accent: #bd93f9;
+  --accent-rgb: 189, 147, 249;
+  --code-bg: #1e1f29;
+  --inline-code-bg: rgba(255, 121, 198, 0.15);
+  --inline-code-color: #ff79c6;
+  --table-header-bg: #343746;
+  --table-stripe-bg: rgba(40, 42, 54, 0.8);
+  --hr-color: #44475a;
+  --blockquote-bg: rgba(189, 147, 249, 0.1);
+}
+
+/* 5. Cyberpunk Neon */
+.theme-cyberpunk {
+  --canvas-bg: #08090d;
+  --card-bg: #0f121d;
+  --card-border: #ff007f55;
+  --card-shadow: 0 0 35px rgba(255, 0, 127, 0.2), 0 0 20px rgba(0, 240, 255, 0.15);
+  --text-main: #f0f6fc;
+  --text-muted: #00f0ff;
+  --accent: #00f0ff;
+  --accent-rgb: 0, 240, 255;
+  --code-bg: #06070a;
+  --inline-code-bg: rgba(255, 0, 127, 0.2);
+  --inline-code-color: #ff007f;
+  --table-header-bg: #181d2e;
+  --table-stripe-bg: rgba(15, 18, 29, 0.8);
+  --hr-color: #ff007f44;
+  --blockquote-bg: rgba(0, 240, 255, 0.08);
+}
+
+/* 6. Persian Classic (Slate & Persian Cyan / Gold) */
+.theme-persian-classic {
+  --canvas-bg: #0b132b;
+  --card-bg: #1c2541;
+  --card-border: #3a506b;
+  --card-shadow: 0 25px 50px rgba(11, 19, 43, 0.6);
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --accent: #5bc0be;
+  --accent-rgb: 91, 192, 190;
+  --code-bg: #0b132b;
+  --inline-code-bg: rgba(91, 192, 190, 0.15);
+  --inline-code-color: #f6ae2d;
+  --table-header-bg: #273459;
+  --table-stripe-bg: rgba(28, 37, 65, 0.8);
+  --hr-color: #3a506b;
+  --blockquote-bg: rgba(91, 192, 190, 0.1);
+}
+
+/* 7. Academic Paper (Formal Research) */
+.theme-academic {
+  --canvas-bg: #ebebeb;
+  --card-bg: #ffffff;
+  --card-border: #cccccc;
+  --card-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+  --text-main: #111827;
+  --text-muted: #4b5563;
+  --accent: #1e3a8a;
+  --accent-rgb: 30, 58, 138;
+  --code-bg: #f3f4f6;
+  --inline-code-bg: #e5e7eb;
+  --inline-code-color: #991b1b;
+  --table-header-bg: #f9fafb;
+  --table-stripe-bg: #ffffff;
+  --hr-color: #d1d5db;
+  --blockquote-bg: rgba(30, 58, 138, 0.05);
+}

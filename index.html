@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MarkSnap — Visual Markdown to Image & PDF Studio</title>
+  <meta name="description" content="Universal client-side Markdown to High-Res Image (PNG/JPG), PDF and SVG Exporter with Persian RTL and multi-theme support.">
+
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236366f1'><path d='M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z'/></svg>">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Highlight.js CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+
+  <!-- KaTeX CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+
+  <!-- Custom Stylesheets -->
+  <link rel="stylesheet" href="assets/css/themes.css">
+  <link rel="stylesheet" href="assets/css/style.css">
+
+  <!-- CDN Dependencies -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+
+<body class="h-full bg-slate-950 text-slate-100 flex flex-col overflow-hidden">
+
+  <!-- Top Navigation Header -->
+  <header class="h-16 border-b border-slate-800 bg-slate-900/90 backdrop-blur px-6 flex items-center justify-between shrink-0 z-30">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-indigo-500/25">
+        <i data-lucide="camera" class="w-5 h-5 text-white"></i>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-white via-slate-200 to-indigo-300 bg-clip-text text-transparent">MarkSnap</span>
+          <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">v1.0 • RTL</span>
+        </div>
+        <p class="text-xs text-slate-400">Visual Markdown to Image & PDF Studio</p>
+      </div>
+    </div>
+
+    <!-- Quick Samples -->
+    <div class="hidden md:flex items-center gap-2 bg-slate-800/60 p-1 rounded-xl border border-slate-700/60">
+      <span class="text-xs font-medium text-slate-400 px-2 flex items-center gap-1.5">
+        <i data-lucide="file-text" class="w-3.5 h-3.5"></i> Sample:
+      </span>
+      <button id="btn-sample-persian" class="px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-slate-700 text-slate-200 transition flex items-center gap-1.5">
+        <span>🇮🇷</span> فارسی (RTL)
+      </button>
+      <button id="btn-sample-arch" class="px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-slate-700 text-slate-200 transition flex items-center gap-1.5">
+        <span>📐</span> Architecture
+      </button>
+      <button id="btn-sample-math" class="px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-slate-700 text-slate-200 transition flex items-center gap-1.5">
+        <span>🧪</span> Math & KaTeX
+      </button>
+    </div>
+
+    <!-- GitHub Link & External -->
+    <div class="flex items-center gap-3">
+      <a href="https://github.com/ErfanVahabpour/MarkSnap" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 text-xs font-semibold px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">
+        <i data-lucide="github" class="w-4 h-4"></i>
+        <span>GitHub</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Split Layout -->
+  <div class="flex-1 flex overflow-hidden">
+
+    <!-- Left Panel: Sidebar & Editor -->
+    <aside class="w-full md:w-[460px] lg:w-[500px] border-r border-slate-800 bg-slate-900 flex flex-col shrink-0 z-20">
+      
+      <!-- Upload Drop Zone -->
+      <div class="p-4 border-b border-slate-800">
+        <div id="drop-zone" class="border-2 border-dashed border-slate-700 hover:border-indigo-500 rounded-xl p-4 text-center cursor-pointer transition bg-slate-950/40 hover:bg-indigo-950/20 group">
+          <input type="file" id="file-input" class="hidden" accept=".md,.markdown,.txt">
+          <i data-lucide="upload-cloud" class="w-7 h-7 mx-auto text-slate-400 group-hover:text-indigo-400 transition mb-1"></i>
+          <p class="text-xs font-medium text-slate-300">Drop Markdown file here or <span class="text-indigo-400 underline">browse</span></p>
+          <p class="text-[10px] text-slate-500 mt-0.5">Supports .md, .markdown with full UTF-8 & Persian</p>
+        </div>
+      </div>
+
+      <!-- Controls & Customization Accordion/Card -->
+      <div class="p-4 border-b border-slate-800 space-y-3.5 bg-slate-900/50 overflow-y-auto max-h-[38vh]">
+        
+        <!-- Theme & Font Grid -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1 flex items-center gap-1">
+              <i data-lucide="palette" class="w-3.5 h-3.5"></i> Theme Style
+            </label>
+            <select id="theme-select" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+              <option value="theme-persian-classic">Persian Classic</option>
+              <option value="theme-github-dark" selected>GitHub Dark</option>
+              <option value="theme-github-light">GitHub Light</option>
+              <option value="theme-notion">Notion Clean (Warm)</option>
+              <option value="theme-dracula">Dracula (Vibrant)</option>
+              <option value="theme-cyberpunk">Cyberpunk Neon</option>
+              <option value="theme-academic">Academic Paper</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1 flex items-center gap-1">
+              <i data-lucide="type" class="w-3.5 h-3.5"></i> Font Family
+            </label>
+            <select id="font-select" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+              <option value="font-vazir" selected>Vazirmatn (وزیرمتن)</option>
+              <option value="font-sahel">Sahel (ساحل)</option>
+              <option value="font-samim">Samim (صمیم)</option>
+              <option value="font-inter">Inter (Modern Sans)</option>
+              <option value="font-mono">JetBrains Mono</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Direction & Width Grid -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1 flex items-center gap-1">
+              <i data-lucide="align-right" class="w-3.5 h-3.5"></i> Direction
+            </label>
+            <select id="direction-select" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+              <option value="auto" selected>✨ Auto-Detect RTL/LTR</option>
+              <option value="rtl">🇮🇷 RTL (Right-to-Left)</option>
+              <option value="ltr">🇬🇧 LTR (Left-to-Right)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1 flex items-center justify-between">
+              <span class="flex items-center gap-1"><i data-lucide="maximize" class="w-3.5 h-3.5"></i> Width</span>
+              <span id="width-value" class="text-[11px] text-indigo-400">1100px</span>
+            </label>
+            <input type="range" id="width-slider" min="700" max="1400" step="50" value="1100" class="w-full accent-indigo-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+          </div>
+        </div>
+
+        <!-- Padding & Watermark Grid -->
+        <div class="grid grid-cols-2 gap-3 items-center">
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1 flex items-center justify-between">
+              <span class="flex items-center gap-1"><i data-lucide="minimize" class="w-3.5 h-3.5"></i> Padding</span>
+              <span id="padding-value" class="text-[11px] text-indigo-400">48px</span>
+            </label>
+            <input type="range" id="padding-slider" min="20" max="80" step="4" value="48" class="w-full accent-indigo-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label class="text-xs font-medium text-slate-400 flex items-center gap-1">
+                <i data-lucide="badge-check" class="w-3.5 h-3.5"></i> Branding Badge
+              </label>
+              <input type="checkbox" id="watermark-toggle" checked class="accent-indigo-500 w-4 h-4 rounded cursor-pointer">
+            </div>
+            <input type="text" id="watermark-text" value="Made with MarkSnap" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1 text-[11px] text-slate-300 focus:outline-none focus:border-indigo-500">
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Live Markdown Editor Area -->
+      <div class="flex-1 flex flex-col min-h-0 bg-slate-950">
+        <div class="h-8 bg-slate-900 border-b border-slate-800 px-4 flex items-center justify-between shrink-0">
+          <span class="text-[11px] font-semibold text-slate-400 flex items-center gap-1.5 uppercase tracking-wider">
+            <i data-lucide="code" class="w-3.5 h-3.5 text-indigo-400"></i> Markdown Source
+          </span>
+          <span class="text-[10px] text-slate-500">Live Render Active</span>
+        </div>
+        <textarea id="markdown-editor" spellcheck="false" class="flex-1 w-full bg-slate-950 p-4 text-xs font-mono text-slate-200 resize-none focus:outline-none leading-relaxed overflow-y-auto" placeholder="Type or paste your Markdown here..."></textarea>
+      </div>
+
+      <!-- Export Action Center Footer -->
+      <div class="p-4 border-t border-slate-800 bg-slate-900/90 shrink-0 space-y-2.5">
+        <div class="flex items-center justify-between text-xs text-slate-400">
+          <span class="font-medium">Export Quality:</span>
+          <select id="export-scale" class="bg-slate-800 border border-slate-700 rounded-md px-2 py-0.5 text-xs text-slate-200">
+            <option value="1">1x Standard</option>
+            <option value="2" selected>2x Retina HD (Crisp)</option>
+            <option value="3">3x Ultra-HD Print</option>
+          </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <button id="btn-export-png" class="flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs shadow-lg shadow-indigo-600/30 transition">
+            <i data-lucide="image" class="w-4 h-4"></i> Export PNG
+          </button>
+          <button id="btn-export-jpg" class="flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs border border-slate-700 transition">
+            <i data-lucide="file-image" class="w-4 h-4"></i> Export JPG
+          </button>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2">
+          <button id="btn-export-pdf" class="flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-xs border border-slate-700 transition">
+            <i data-lucide="file-text" class="w-3.5 h-3.5 text-red-400"></i> PDF
+          </button>
+          <button id="btn-export-svg" class="flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-xs border border-slate-700 transition">
+            <i data-lucide="code" class="w-3.5 h-3.5 text-cyan-400"></i> SVG
+          </button>
+          <button id="btn-copy-clipboard" class="flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg bg-emerald-700/60 hover:bg-emerald-600 text-emerald-100 font-medium text-xs border border-emerald-600/40 transition">
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy Img
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Right Panel: Canvas Preview Viewport -->
+    <main id="render-canvas-container" class="flex-1 overflow-auto flex justify-center items-start p-8 md:p-12 relative">
+      
+      <!-- The Exported Card Element -->
+      <article id="export-card" class="rounded-2xl transition-all duration-200" style="max-width: 1100px; width: 100%; padding: 48px;">
+        <div id="markdown-container" class="markdown-content"></div>
+
+        <!-- Custom Watermark -->
+        <div id="watermark-element" class="marksnap-watermark">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
+            <span id="watermark-author" class="font-medium">Made with MarkSnap</span>
+          </div>
+          <span class="text-xs opacity-75">MarkSnap Visual Studio</span>
+        </div>
+      </article>
+
+    </main>
+
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3 rounded-xl shadow-2xl text-sm font-medium transition-all duration-300 transform translate-y-10 opacity-0 pointer-events-none">
+    <i data-lucide="check-circle" class="w-4 h-4"></i>
+    <span id="toast-message">Notification</span>
+  </div>
+
+  <!-- Application Logic -->
+  <script src="assets/js/samples.js"></script>
+  <script src="assets/js/markdown.js"></script>
+  <script src="assets/js/exporter.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
