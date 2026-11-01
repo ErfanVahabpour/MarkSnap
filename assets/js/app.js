@@ -1,5 +1,6 @@
 /**
  * MarkSnap Main Application Controller
+ * Includes LocalStorage Persistence & Recent Documents History
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -24,7 +25,20 @@ document.addEventListener('DOMContentLoaded', () => {
   const toast = document.getElementById('toast');
   const toastMessage = document.getElementById('toast-message');
 
-  // Buttons
+  // Stats & Save Indicators
+  const docStats = document.getElementById('doc-stats');
+  const saveStatusIndicator = document.getElementById('save-status-indicator');
+  const btnNewDoc = document.getElementById('btn-new-doc');
+
+  // Recent Documents Modal Elements
+  const btnOpenRecents = document.getElementById('btn-open-recents');
+  const btnCloseRecents = document.getElementById('btn-close-recents');
+  const btnClearAllRecents = document.getElementById('btn-clear-all-recents');
+  const recentModal = document.getElementById('recent-modal');
+  const recentsListContainer = document.getElementById('recents-list-container');
+  const recentCountBadge = document.getElementById('recent-count-badge');
+
+  // Export Buttons
   const btnExportPng = document.getElementById('btn-export-png');
   const btnExportJpg = document.getElementById('btn-export-jpg');
   const btnExportPdf = document.getElementById('btn-export-pdf');
@@ -38,6 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let currentFilename = 'marksnap-doc';
   let renderDebounceTimer = null;
+  let saveDebounceTimer = null;
 
   // Initialize Lucide icons
   if (window.lucide) {
@@ -98,6 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
         fontFamily: 'Vazirmatn, Inter, sans-serif'
       });
     }
+    persistUserSettings();
   }
 
   // Apply Font
@@ -105,12 +121,68 @@ document.addEventListener('DOMContentLoaded', () => {
     const font = fontSelect.value;
     previewCard.className = previewCard.className.replace(/font-[a-z\-]+/g, '').trim();
     previewCard.classList.add(font);
+    persistUserSettings();
+  }
+
+  // Persist User Customization Settings
+  function persistUserSettings() {
+    if (!window.markSnapStorage) return;
+    markSnapStorage.saveSettings({
+      theme: themeSelect.value,
+      font: fontSelect.value,
+      direction: dirSelect.value,
+      width: widthSlider.value,
+      padding: paddingSlider.value,
+      watermark: watermarkToggle.checked,
+      watermarkText: watermarkText.value,
+      exportScale: exportScaleSelect.value
+    });
+  }
+
+  // Restore User Customization Settings
+  function restoreUserSettings() {
+    if (!window.markSnapStorage) return;
+    const s = markSnapStorage.getSettings();
+    if (!s) return;
+
+    if (s.theme) themeSelect.value = s.theme;
+    if (s.font) fontSelect.value = s.font;
+    if (s.direction) dirSelect.value = s.direction;
+    if (s.width) {
+      widthSlider.value = s.width;
+      widthValue.textContent = `${s.width}px`;
+      previewCard.style.maxWidth = `${s.width}px`;
+    }
+    if (s.padding) {
+      paddingSlider.value = s.padding;
+      paddingValue.textContent = `${s.padding}px`;
+      previewCard.style.padding = `${s.padding}px`;
+    }
+    if (s.watermark !== undefined) {
+      watermarkToggle.checked = s.watermark;
+      watermarkElement.style.display = s.watermark ? 'flex' : 'none';
+    }
+    if (s.watermarkText) {
+      watermarkText.value = s.watermarkText;
+      watermarkAuthor.textContent = s.watermarkText;
+    }
+    if (s.exportScale) {
+      exportScaleSelect.value = s.exportScale;
+    }
+  }
+
+  // Update Stats & Document Header
+  function updateStats(text) {
+    const chars = text.length;
+    const words = (text.match(/\S+/g) || []).length;
+    docStats.textContent = `${chars} chars • ${words} words`;
   }
 
   // Render Document
   async function renderDocument() {
     const text = editor.value;
     applyDirection(text);
+    updateStats(text);
     
     // Extract first H1 as document title
     const titleMatch = text.match(/^#\s+(.+)$/m);
@@ -121,13 +193,33 @@ document.addEventListener('DOMContentLoaded', () => {
     await window.markSnapRenderer.render(text, markdownContainer);
   }
 
-  function debouncedRender() {
+  // Save to LocalStorage Debounced
+  function debouncedSave() {
+    clearTimeout(saveDebounceTimer);
+    saveDebounceTimer = setTimeout(() => {
+      const text = editor.value;
+      if (text.trim()) {
+        markSnapStorage.saveCurrent(text, currentFilename);
+        markSnapStorage.saveRecent(currentFilename, text, currentFilename);
+        updateRecentBadge();
+        
+        // Visual indicator pulse
+        saveStatusIndicator.style.opacity = '1';
+        setTimeout(() => {
+          saveStatusIndicator.style.opacity = '0.75';
+        }, 1200);
+      }
+    }, 600);
+  }
+
+  function handleEditorInput() {
     clearTimeout(renderDebounceTimer);
-    renderDebounceTimer = setTimeout(renderDocument, 250);
+    renderDebounceTimer = setTimeout(renderDocument, 200);
+    debouncedSave();
   }
 
   // Event Listeners for Controls
-  editor.addEventListener('input', debouncedRender);
+  editor.addEventListener('input', handleEditorInput);
 
   themeSelect.addEventListener('change', () => {
     applyTheme();
@@ -138,6 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   dirSelect.addEventListener('change', () => {
     applyDirection(editor.value);
+    persistUserSettings();
   });
 
   widthSlider.addEventListener('input', (e) => {
@@ -145,20 +238,38 @@ document.addEventListener('DOMContentLoaded', () => {
     widthValue.textContent = `${w}px`;
     previewCard.style.maxWidth = `${w}px`;
     previewCard.style.width = '100%';
+    persistUserSettings();
   });
 
   paddingSlider.addEventListener('input', (e) => {
     const p = e.target.value;
     paddingValue.textContent = `${p}px`;
     previewCard.style.padding = `${p}px`;
+    persistUserSettings();
   });
 
   watermarkToggle.addEventListener('change', (e) => {
     watermarkElement.style.display = e.target.checked ? 'flex' : 'none';
+    persistUserSettings();
   });
 
   watermarkText.addEventListener('input', (e) => {
     watermarkAuthor.textContent = e.target.value || 'MarkSnap Visual';
+    persistUserSettings();
+  });
+
+  exportScaleSelect.addEventListener('change', persistUserSettings);
+
+  // New Blank Document
+  btnNewDoc.addEventListener('click', () => {
+    if (editor.value.trim() && !confirm('Create a new blank document? Your current document is saved in Recent Files.')) {
+      return;
+    }
+    editor.value = '# Untitled Document\n\nStart writing in Markdown...';
+    currentFilename = 'untitled';
+    renderDocument();
+    debouncedSave();
+    showToast('Created new blank document');
   });
 
   // File Upload Handlers
@@ -169,7 +280,12 @@ document.addEventListener('DOMContentLoaded', () => {
       editor.value = e.target.result;
       currentFilename = file.name.replace(/\.[^/.]+$/, "");
       renderDocument();
-      showToast(`Loaded ${file.name}`);
+      
+      // Save directly to recents
+      markSnapStorage.saveCurrent(editor.value, currentFilename);
+      markSnapStorage.saveRecent(currentFilename, editor.value, file.name);
+      updateRecentBadge();
+      showToast(`Loaded and saved: ${file.name}`);
     };
     reader.readAsText(file, 'UTF-8');
   }
@@ -204,15 +320,119 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // Recent Documents Modal Logic
+  function updateRecentBadge() {
+    const count = markSnapStorage.getRecents().length;
+    recentCountBadge.textContent = count;
+  }
+
+  function renderRecentsList() {
+    const recents = markSnapStorage.getRecents();
+    recentsListContainer.innerHTML = '';
+
+    if (recents.length === 0) {
+      recentsListContainer.innerHTML = `
+        <div class="text-center py-10 text-slate-500">
+          <i data-lucide="inbox" class="w-10 h-10 mx-auto mb-2 opacity-50"></i>
+          <p class="text-xs font-medium">No saved documents yet</p>
+          <p class="text-[10px] text-slate-600 mt-1">Uploaded files and your writing will automatically appear here.</p>
+        </div>
+      `;
+      if (window.lucide) lucide.createIcons({ root: recentsListContainer });
+      return;
+    }
+
+    recents.forEach(doc => {
+      const isRtl = window.markSnapRenderer.detectDirection(doc.title + ' ' + doc.preview) === 'rtl';
+      const itemEl = document.createElement('div');
+      itemEl.className = 'pt-2.5 pb-2.5 first:pt-0 flex items-start justify-between gap-3 group hover:bg-slate-800/40 p-2.5 rounded-xl transition cursor-pointer';
+
+      itemEl.innerHTML = `
+        <div class="flex-1 min-w-0" data-action="load" data-id="${doc.id}">
+          <div class="flex items-center gap-2 mb-1">
+            <span class="text-xs font-bold text-slate-200 group-hover:text-indigo-400 truncate transition ${isRtl ? 'font-vazir' : ''}" dir="${isRtl ? 'rtl' : 'ltr'}">${markSnapRenderer.escapeHtml(doc.title)}</span>
+          </div>
+          <p class="text-[11px] text-slate-400 line-clamp-1 mb-1.5 ${isRtl ? 'font-vazir' : ''}" dir="${isRtl ? 'rtl' : 'ltr'}">${markSnapRenderer.escapeHtml(doc.preview || 'No preview available')}</p>
+          <div class="flex items-center gap-3 text-[10px] text-slate-500">
+            <span class="flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3"></i> ${markSnapStorage.formatTimeAgo(doc.updatedAt)}</span>
+            <span>•</span>
+            <span>${doc.charCount || 0} chars</span>
+            <span>•</span>
+            <span>${doc.wordCount || 0} words</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-1 shrink-0 pt-0.5">
+          <button data-action="delete" data-id="${doc.id}" title="Delete document" class="w-7 h-7 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 flex items-center justify-center transition">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5 pointer-events-none"></i>
+          </button>
+        </div>
+      `;
+
+      // Event listener on item
+      itemEl.addEventListener('click', (e) => {
+        const delBtn = e.target.closest('[data-action="delete"]');
+        if (delBtn) {
+          e.stopPropagation();
+          const docId = delBtn.dataset.id;
+          markSnapStorage.deleteRecent(docId);
+          renderRecentsList();
+          updateRecentBadge();
+          showToast('Document deleted from history');
+          return;
+        }
+
+        // Load document
+        editor.value = doc.content;
+        currentFilename = doc.title || doc.filename;
+        renderDocument();
+        markSnapStorage.saveCurrent(doc.content, currentFilename);
+        recentModal.classList.add('hidden');
+        showToast(`Loaded: ${doc.title}`);
+      });
+
+      recentsListContainer.appendChild(itemEl);
+    });
+
+    if (window.lucide) {
+      lucide.createIcons({ root: recentsListContainer });
+    }
+  }
+
+  btnOpenRecents.addEventListener('click', () => {
+    renderRecentsList();
+    recentModal.classList.remove('hidden');
+  });
+
+  btnCloseRecents.addEventListener('click', () => {
+    recentModal.classList.add('hidden');
+  });
+
+  recentModal.addEventListener('click', (e) => {
+    if (e.target === recentModal) {
+      recentModal.classList.add('hidden');
+    }
+  });
+
+  btnClearAllRecents.addEventListener('click', () => {
+    if (confirm('Clear all recent documents history?')) {
+      markSnapStorage.clearRecents();
+      renderRecentsList();
+      updateRecentBadge();
+      showToast('Recent history cleared');
+    }
+  });
+
   // Sample Buttons
   btnSamplePersian.addEventListener('click', () => {
     editor.value = window.MarkSnapSamples.persian;
     dirSelect.value = 'rtl';
     fontSelect.value = 'font-vazir';
     themeSelect.value = 'theme-persian-classic';
+    currentFilename = 'معماری و استانداردهای نرم‌افزار';
     applyTheme();
     applyFont();
     renderDocument();
+    debouncedSave();
     showToast('Loaded Persian Sample with Vazirmatn');
   });
 
@@ -221,9 +441,11 @@ document.addEventListener('DOMContentLoaded', () => {
     dirSelect.value = 'ltr';
     fontSelect.value = 'font-inter';
     themeSelect.value = 'theme-github-dark';
+    currentFilename = 'System Architecture Guidelines';
     applyTheme();
     applyFont();
     renderDocument();
+    debouncedSave();
     showToast('Loaded Architecture Spec Sample');
   });
 
@@ -232,9 +454,11 @@ document.addEventListener('DOMContentLoaded', () => {
     dirSelect.value = 'ltr';
     fontSelect.value = 'font-inter';
     themeSelect.value = 'theme-notion';
+    currentFilename = 'Mathematical Foundations';
     applyTheme();
     applyFont();
     renderDocument();
+    debouncedSave();
     showToast('Loaded KaTeX Math Sample');
   });
 
@@ -276,9 +500,23 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Initial Boot
-  editor.value = window.MarkSnapSamples.persian;
+  // Initial Boot Sequence
+  restoreUserSettings();
   applyTheme();
   applyFont();
+
+  // Check LocalStorage for existing session
+  const savedDoc = markSnapStorage.getCurrent();
+  if (savedDoc && savedDoc.content && savedDoc.content.trim()) {
+    editor.value = savedDoc.content;
+    currentFilename = savedDoc.filename || 'marksnap-doc';
+  } else {
+    // Default to Persian sample on first launch
+    editor.value = window.MarkSnapSamples.persian;
+    currentFilename = 'معماری و استانداردهای نرم‌افزار';
+    markSnapStorage.saveRecent(currentFilename, editor.value, currentFilename);
+  }
+
+  updateRecentBadge();
   renderDocument();
 });
