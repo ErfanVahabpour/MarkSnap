@@ -31,7 +31,7 @@ class MarkSnapRenderer {
 
       if (lang === 'mermaid') {
         const id = 'mermaid-' + Math.random().toString(36).substring(2, 9);
-        return `<div class="mermaid-container"><div id="${id}" class="mermaid">${self.escapeHtml(code)}</div></div>`;
+        return `<div class="mermaid-container"><pre id="${id}" class="mermaid">${code}</pre></div>`;
       }
 
       let highlighted = '';
@@ -84,11 +84,16 @@ class MarkSnapRenderer {
    */
   detectDirection(text) {
     if (!text) return 'ltr';
+    // Strip code blocks and inline code before detecting direction
+    const cleanText = text
+      .replace(/```[\s\S]*?```/g, '')
+      .replace(/`[^`\n]+?`/g, '');
+
     const rtlRegex = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/g;
-    const matches = text.match(rtlRegex);
+    const matches = cleanText.match(rtlRegex);
     const rtlCount = matches ? matches.length : 0;
-    const latinCount = (text.match(/[A-Za-z]/g) || []).length;
-    return rtlCount > latinCount * 0.4 ? 'rtl' : 'ltr';
+    const latinCount = (cleanText.match(/[A-Za-z]/g) || []).length;
+    return rtlCount > latinCount * 0.3 ? 'rtl' : 'ltr';
   }
 
   /**
@@ -121,42 +126,74 @@ class MarkSnapRenderer {
   }
 
   /**
-   * Protect and process LaTeX formulas with KaTeX
-   */
-  processMath(text) {
-    if (!window.katex) return text;
-
-    // Display math: $$...$$
-    text = text.replace(/\$\$([\s\S]+?)\$\$/g, (match, formula) => {
-      try {
-        return `<div class="katex-display">${katex.renderToString(formula.trim(), { displayMode: true, throwOnError: false })}</div>`;
-      } catch (e) {
-        return match;
-      }
-    });
-
-    // Inline math: $...$
-    text = text.replace(/\$([^\$\n]+?)\$/g, (match, formula) => {
-      try {
-        return katex.renderToString(formula.trim(), { displayMode: false, throwOnError: false });
-      } catch (e) {
-        return match;
-      }
-    });
-
-    return text;
-  }
-
-  /**
    * Main render function that outputs HTML string
    */
   async render(markdownText, containerEl) {
     if (!markdownText || !containerEl) return;
 
-    let processed = this.processCallouts(markdownText);
-    processed = this.processMath(processed);
+    // Step 1: Stash fenced code blocks and inline code spans so they are NEVER mangled by math or callout regexes
+    const codeStash = [];
+    const stashCode = (match) => {
+      const token = `%%MARKSNAP_CODE_${codeStash.length}%%`;
+      codeStash.push(match);
+      return token;
+    };
 
-    const parsedHtml = marked.parse(processed);
+    // Stash fenced code blocks (```...```)
+    let text = markdownText.replace(/```[\s\S]*?```/g, stashCode);
+    // Stash inline code (`...`)
+    text = text.replace(/`[^`\n]+?`/g, stashCode);
+
+    // Step 2: Process GitHub callouts on the prose text
+    text = this.processCallouts(text);
+
+    // Step 3: Process LaTeX math expressions with KaTeX, stashing rendered HTML into placeholders
+    const mathStash = [];
+    const stashMath = (renderedHtml) => {
+      const token = `MARKSNAPMATH${mathStash.length}TOKEN`;
+      mathStash.push(renderedHtml);
+      return token;
+    };
+
+    if (window.katex) {
+      // Display math: $$...$$
+      text = text.replace(/\$\$([\s\S]+?)\$\$/g, (match, formula) => {
+        try {
+          const rendered = `<div class="katex-display">${katex.renderToString(formula.trim(), { displayMode: true, throwOnError: false })}</div>`;
+          return stashMath(rendered);
+        } catch (e) {
+          return match;
+        }
+      });
+
+      // Inline math: $formula$
+      // Strict matching:
+      // - Not preceded by word character, backslash, or dollar
+      // - Not followed by word character, digit, or dollar
+      // - Inside formula: cannot start or end with space or newline
+      text = text.replace(/(?<![\w\\\$])\$([^\$\s\n](?:[^\$\n]*?[^\$\s\n])?)\$(?![\w\$])/g, (match, formula) => {
+        try {
+          const rendered = katex.renderToString(formula.trim(), { displayMode: false, throwOnError: false });
+          return stashMath(rendered);
+        } catch (e) {
+          return match;
+        }
+      });
+    }
+
+    // Step 4: Restore stashed code blocks & inline code spans intact
+    for (let i = 0; i < codeStash.length; i++) {
+      text = text.replace(`%%MARKSNAP_CODE_${i}%%`, codeStash[i]);
+    }
+
+    // Step 5: Parse with Marked
+    let parsedHtml = marked.parse(text);
+
+    // Step 6: Restore rendered KaTeX math HTML into the final output
+    for (let i = 0; i < mathStash.length; i++) {
+      parsedHtml = parsedHtml.replace(`MARKSNAPMATH${i}TOKEN`, mathStash[i]);
+    }
+
     containerEl.innerHTML = parsedHtml;
 
     // Trigger Lucide icons
